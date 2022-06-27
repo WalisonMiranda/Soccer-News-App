@@ -1,5 +1,6 @@
 package me.dio.soccernews.ui.news;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,7 +10,10 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.room.Room;
 
+import me.dio.soccernews.MainActivity;
+import me.dio.soccernews.data.local.AppDatabase;
 import me.dio.soccernews.databinding.FragmentNewsBinding;
 import me.dio.soccernews.ui.adapter.NewsAdapter;
 
@@ -27,8 +31,28 @@ public class NewsFragment extends Fragment {
 
         binding.rvNews.setLayoutManager(new LinearLayoutManager(getContext()));
         newsViewModel.getNews().observe(getViewLifecycleOwner(), news -> {
-            binding.rvNews.setAdapter(new NewsAdapter(news));
+            binding.rvNews.setAdapter(new NewsAdapter(news, updatedNews -> {
+                MainActivity activity = (MainActivity) getActivity();
+                if (activity != null) {
+                    activity.getDb().newsDao().save(updatedNews);
+                }
+            }));
         });
+
+        newsViewModel.getState().observe(getViewLifecycleOwner(), state -> {
+            switch (state) {
+                case DOING:
+                    //TODO Iniciar SiwpeRefreshLayout (loading)
+                    break;
+                case DONE:
+                    //TODO Finalizar SiwpeRefreshLayout (loading)
+                    break;
+                case ERROR:
+                    //TODO Finalizar SiwpeRefreshLayout (loading)
+                    //TODO Mostrar um erro genérico
+            }
+        });
+
         return root;
     }
 
@@ -37,4 +61,6 @@ public class NewsFragment extends Fragment {
         super.onDestroyView();
         binding = null;
     }
+
+
 }
